@@ -68,3 +68,31 @@ func TestDecideNextTrackSkipAndRecent(t *testing.T) {
 		t.Errorf("Selected track should not be recently played or skipped, got %s", next2.ID)
 	}
 }
+
+func TestDecideNextTrackRandomization(t *testing.T) {
+	memory := &agent.SessionMemory{
+		LastTracks:    []*agent.Track{},
+		SkipHistory:   make(map[string]bool),
+		CurrentMode:   "chill",
+		EnergyHistory: []float64{},
+	}
+
+	SampleTracks := []*agent.Track{
+		{ID: "1", Name: "Morning Breeze", Mood: "chill", Energy: 0.2, Genre: "ambient"},
+		{ID: "4", Name: "Evening Calm", Mood: "chill", Energy: 0.3, Genre: "jazz"},
+		{ID: "7", Name: "Sunset Chill", Mood: "chill", Energy: 0.25, Genre: "ambient"},
+	}
+
+	selected := make(map[string]bool)
+	for i := 0; i < 10; i++ {
+		track := agent.DecideNextTrack(memory, SampleTracks)
+		if track.Mood != "chill" {
+			t.Errorf("Expected mood 'chill', got %s", track.Mood)
+		}
+		selected[track.ID] = true
+	}
+
+	if len(selected) < 2 {
+		t.Errorf("Randomization might not be working; only %d unique tracks selected", len(selected))
+	}
+}

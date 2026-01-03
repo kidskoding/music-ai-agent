@@ -2,6 +2,7 @@ package agent
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 )
 
@@ -48,9 +49,19 @@ func DecideNextTrack(memory *SessionMemory, tracks []*Track) *Track {
 
 	var nextTrack *Track
 	if len(candidates) > 0 {
+		rand.Seed(time.Now().UnixNano())
 		nextTrack = candidates[0]
 	} else {
-		nextTrack = tracks[0]
+		for _, track := range tracks {
+			if !wasSkipped(memory, track.ID) {
+				nextTrack = track
+				break
+			}
+		}
+
+		if nextTrack == nil {
+			nextTrack = tracks[0]
+		}
 	}
 
 	memory.LastTracks = append(memory.LastTracks, nextTrack)

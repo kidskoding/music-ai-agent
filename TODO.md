@@ -5,7 +5,7 @@
 - [x] Store tracks and session memory (history, skips, energy, mood).  
 - [x] Decide the next track based on current mood, energy, and rules.  
 - [x] Avoid recently played tracks and handle fallback when no matches are found.  
-- [ ] Randomize selections among candidate tracks to create a natural listening flow.  
+- [x] Randomize selections among candidate tracks to create a natural listening flow.  
 
 ---
 
