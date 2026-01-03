@@ -14,7 +14,7 @@
 - [x] Unit tests for track selection logic.  
 - [x] Sanity tests for framework verification.  
 - [x] Tests for skip/recently played behavior and fallback logic.  
-- [ ] Tests for energy/mood adaptive behavior.  
+- [x] Tests for energy/mood adaptive behavior.  
 - [ ] Table-driven tests for multiple session scenarios.  
 - [ ] Integration tests with Databricks and Google Cloud AI (mocked or real).  
 
