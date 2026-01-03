@@ -41,3 +41,30 @@ func TestDecideNextTrack(t *testing.T) {
         t.Errorf("Track selected does not match CurrentMode 'chill'")
     }
 }
+
+func TestDecideNextTrackSkipAndRecent(t *testing.T) {
+	memory := &agent.SessionMemory{
+		LastTracks:    []*agent.Track{},
+		SkipHistory:   map[string]bool{"2": true},
+		CurrentMode:   "medium",
+		EnergyHistory: []float64{},
+	}
+
+	SampleTracks := []*agent.Track{
+		{ID: "1", Name: "Morning Breeze", Mood: "chill", Energy: 0.2, Genre: "ambient"},
+		{ID: "2", Name: "Afternoon Drive", Mood: "medium", Energy: 0.5, Genre: "pop"},
+		{ID: "6", Name: "Lazy Afternoon", Mood: "medium", Energy: 0.4, Genre: "indie"},
+	}
+
+	next := agent.DecideNextTrack(memory, SampleTracks)
+	if next.ID == "2" {
+		t.Errorf("Track 2 is skipped but was selected")
+	}
+
+	memory.LastTracks = append(memory.LastTracks, next)
+
+	next2 := agent.DecideNextTrack(memory, SampleTracks)
+	if next2.ID == next.ID || next2.ID == "2" {
+		t.Errorf("Selected track should not be recently played or skipped, got %s", next2.ID)
+	}
+}

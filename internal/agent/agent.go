@@ -26,7 +26,8 @@ func StartAgent() {
 
 	for range 3 {
 		fmt.Println("agent decides next track...")
-		DecideNextTrack(memory, SampleTracks)
+		next := DecideNextTrack(memory, SampleTracks)
+		fmt.Printf("played: %s\n\n", next.Name)
 		time.Sleep(1 * time.Second)
 	}
 }
@@ -34,7 +35,9 @@ func StartAgent() {
 func DecideNextTrack(memory *SessionMemory, tracks []*Track) *Track {
 	var candidates []*Track
 	for _, track := range tracks {
-		if track.Mood == memory.CurrentMode && !wasRecentlyPlayed(memory, track.ID) {
+		if track.Mood == memory.CurrentMode && 
+			!wasRecentlyPlayed(memory, track.ID) &&
+			!wasSkipped(memory, track.ID) {
 			candidates = append(candidates, track)
 		}
 	}
@@ -62,4 +65,8 @@ func wasRecentlyPlayed(memory *SessionMemory, trackID string) bool {
 	}
 
 	return false
+}
+
+func wasSkipped(memory *SessionMemory, trackID string) bool {
+	return memory.SkipHistory[trackID]
 }
