@@ -24,10 +24,14 @@ func StartAgent() {
 		{ID: "8", Name: "Drive Fast", Mood: "high", Energy: 0.85, Genre: "electronic"},
 	}
 
-	for range 3 {
+	for range 5 {
 		fmt.Println("agent decides next track...")
 		next := DecideNextTrack(memory, SampleTracks)
-		fmt.Printf("played: %s\n\n", next.Name)
+
+		memory.EnergyHistory = append(memory.EnergyHistory, next.Energy)
+		UpdateMoodBasedOnEnergy(memory)
+
+		fmt.Printf("played: %s | current mode: %s\n\n", next.Name, memory.CurrentMode)
 		time.Sleep(1 * time.Second)
 	}
 }
@@ -69,4 +73,32 @@ func wasRecentlyPlayed(memory *SessionMemory, trackID string) bool {
 
 func wasSkipped(memory *SessionMemory, trackID string) bool {
 	return memory.SkipHistory[trackID]
+}
+
+func UpdateMoodBasedOnEnergy(memory *SessionMemory) {
+	history := memory.EnergyHistory
+	n := len(history)
+	if n == 0 {
+		return
+	}
+
+	window := 3
+	if n < 3 {
+		window = n
+	}
+
+	var sum float64 = 0.0
+	for i := n - window; i < n; i++ {
+		sum += history[i]
+	}
+	avgEnergy := sum / float64(window)
+
+	switch {
+	case avgEnergy <= 0.3:
+		memory.CurrentMode = "chill"
+	case avgEnergy <= 0.7:
+		memory.CurrentMode = "medium"
+	default:
+		memory.CurrentMode = "high"
+	}
 }
