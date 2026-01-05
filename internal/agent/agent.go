@@ -1,12 +1,27 @@
 package agent
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"time"
+
+	"github.com/kidskoding/music-agent/internal/events"
+	"github.com/kidskoding/music-agent/internal/store"
 )
 
-func StartAgent() {
+var SampleTracksExport = []*Track{
+	{ID: "1", Name: "Morning Breeze", Mood: "chill", Energy: 0.2, Genre: "ambient"},
+	{ID: "2", Name: "Afternoon Drive", Mood: "medium", Energy: 0.5, Genre: "pop"},
+	{ID: "3", Name: "Night Run", Mood: "high", Energy: 0.8, Genre: "electronic"},
+	{ID: "4", Name: "Evening Calm", Mood: "chill", Energy: 0.3, Genre: "jazz"},
+	{ID: "5", Name: "Party Time", Mood: "high", Energy: 0.9, Genre: "dance"},
+	{ID: "6", Name: "Lazy Afternoon", Mood: "medium", Energy: 0.4, Genre: "indie"},
+	{ID: "7", Name: "Sunset Chill", Mood: "chill", Energy: 0.25, Genre: "ambient"},
+	{ID: "8", Name: "Drive Fast", Mood: "high", Energy: 0.85, Genre: "electronic"},
+}
+
+func StartAgent(eventStore store.EventStore) {
 	memory := &SessionMemory{
 		LastTracks: []*Track{},
 		SkipHistory: make(map[string]bool),
@@ -14,27 +29,40 @@ func StartAgent() {
 		CurrentMode: "medium",
 	}
 
-	var SampleTracks = []*Track{
-		{ID: "1", Name: "Morning Breeze", Mood: "chill", Energy: 0.2, Genre: "ambient"},
-		{ID: "2", Name: "Afternoon Drive", Mood: "medium", Energy: 0.5, Genre: "pop"},
-		{ID: "3", Name: "Night Run", Mood: "high", Energy: 0.8, Genre: "electronic"},
-		{ID: "4", Name: "Evening Calm", Mood: "chill", Energy: 0.3, Genre: "jazz"},
-		{ID: "5", Name: "Party Time", Mood: "high", Energy: 0.9, Genre: "dance"},
-		{ID: "6", Name: "Lazy Afternoon", Mood: "medium", Energy: 0.4, Genre: "indie"},
-		{ID: "7", Name: "Sunset Chill", Mood: "chill", Energy: 0.25, Genre: "ambient"},
-		{ID: "8", Name: "Drive Fast", Mood: "high", Energy: 0.85, Genre: "electronic"},
-	}
-
+	sessionID := fmt.Sprintf("sess_%d", time.Now().Unix())
+	SampleTracks := SampleTracksExport
+	
 	for range 5 {
-		fmt.Println("agent decides next track...")
-		next := DecideNextTrack(memory, SampleTracks)
-
-		memory.EnergyHistory = append(memory.EnergyHistory, next.Energy)
-		UpdateMoodBasedOnEnergy(memory)
-
-		fmt.Printf("played: %s | current mode: %s\n\n", next.Name, memory.CurrentMode)
+		RunAgentStep(context.Background(), eventStore, memory, SampleTracks, sessionID)
 		time.Sleep(1 * time.Second)
 	}
+}
+
+func RunAgentStep(ctx context.Context, eventStore store.EventStore, memory *SessionMemory, tracks []*Track, sessionID string) (*Track, error) {
+	fmt.Println("agent deciding next track")
+	next := DecideNextTrack(memory, tracks)
+
+	memory.EnergyHistory = append(memory.EnergyHistory, next.Energy)
+	UpdateMoodBasedOnEnergy(memory)
+
+	event := events.TrackEvent{
+		SessionID: sessionID,
+		TrackID:   next.ID,
+		TrackName: next.Name,
+		Mood:      next.Mood,
+		Energy:    next.Energy,
+		Skipped:   false,
+		Timestamp: time.Now(),
+	}
+
+	err := eventStore.SaveTrackEvent(ctx, event)
+	if err != nil {
+		fmt.Printf("error saving event: %v\n", err)
+		return nil, err
+	}
+
+	fmt.Printf("played: %s | current mode: %s\n\n", next.Name, memory.CurrentMode)
+	return next, nil
 }
 
 func DecideNextTrack(memory *SessionMemory, tracks []*Track) *Track {

@@ -15,6 +15,7 @@
 - [x] Sanity tests for framework verification.  
 - [x] Tests for skip/recently played behavior and fallback logic.  
 - [x] Tests for energy/mood adaptive behavior.  
+- [x] Integration tests for event logging (LocalStore verification).
 - [ ] Table-driven tests for multiple session scenarios.  
 - [ ] Integration tests with Databricks and Google Cloud AI (mocked or real).  
 
@@ -51,15 +52,15 @@
 ## Tooling and Workflow
 
 - [x] Makefile for running tests, building, and running the agent.  
-- [ ] Modular project structure: agent logic, memory, Spotify integration, logger, utilities.  
+- [x] Modular project structure: agent logic, memory, Spotify integration, logger, utilities.  
 - [ ] Configuration management for Databricks and Google Cloud credentials.  
 
 ---
 
 ## Logging and Observability
 
-- [ ] Log agent decisions (track, mood, energy, AI recommendation).  
-- [ ] Track session memory changes.  
+- [x] Log agent decisions (track, mood, energy, AI recommendation).  
+- [x] Track session memory changes.  
 - [ ] Enable debug or verbose mode for troubleshooting.  
 
 ---
