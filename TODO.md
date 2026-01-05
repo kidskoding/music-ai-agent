@@ -32,9 +32,9 @@
 
 ## Databricks Integration
 
-- [ ] Store and retrieve session memory for analytics.  
-- [ ] Track user listening patterns and energy transitions.  
-- [ ] Generate recommendation signals from processed data.  
+- [x] Store and retrieve session memory for analytics.  
+- [x] Track user listening patterns and energy transitions.  
+- [x] Generate recommendation signals from processed data.  
 - [ ] Persist memory in cloud tables or Delta tables for cross-session usage.  
 - [ ] Dynamic track queries from Databricks instead of static samples.  
 
@@ -53,7 +53,7 @@
 
 - [x] Makefile for running tests, building, and running the agent.  
 - [x] Modular project structure: agent logic, memory, Spotify integration, logger, utilities.  
-- [ ] Configuration management for Databricks and Google Cloud credentials.  
+- [] Configuration management for Databricks and Google Cloud credentials.  
 
 ---
 
