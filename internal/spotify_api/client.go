@@ -16,7 +16,7 @@ type Client struct {
 	api *spotify.Client
 }
 
-const redirectURI = "http://localhost:8888/callback"
+const redirectURI = "http://127.0.0.1:8888/callback"
 
 func NewSpotifyClient(ctx context.Context) (*Client, error) {
 	clientID := os.Getenv("SPOTIFY_CLIENT_ID")
