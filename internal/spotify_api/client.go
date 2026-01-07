@@ -4,17 +4,19 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/kidskoding/music-agent/internal/agent"
 	"github.com/zmb3/spotify/v2"
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
-	"golang.org/x/oauth2/clientcredentials"
 )
 
 type Client struct {
-	api	*spotify.Client
+	api *spotify.Client
 }
+
+const redirectURI = "http://localhost:8888/callback"
 
 func NewSpotifyClient(ctx context.Context) (*Client, error) {
 	clientID := os.Getenv("SPOTIFY_CLIENT_ID")
@@ -24,20 +26,43 @@ func NewSpotifyClient(ctx context.Context) (*Client, error) {
 		return nil, fmt.Errorf("missing SPOTIFY_CLIENT_ID or SPOTIFY_CLIENT_SECRET")
 	}
 
-	config := &clientcredentials.Config{
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
-		TokenURL:     spotifyauth.TokenURL,
+	auth := spotifyauth.New(
+		spotifyauth.WithClientID(clientID),
+		spotifyauth.WithClientSecret(clientSecret),
+		spotifyauth.WithRedirectURL(redirectURI),
+		spotifyauth.WithScopes(
+			spotifyauth.ScopeUserReadCurrentlyPlaying,
+			spotifyauth.ScopeUserReadPlaybackState,
+			spotifyauth.ScopeUserModifyPlaybackState,
+			spotifyauth.ScopeUserTopRead,
+		),
+	)
+
+	ch := make(chan *spotify.Client)
+
+	completeAuth := func(w http.ResponseWriter, r *http.Request) {
+		token, err := auth.Token(r.Context(), "random-state-string", r)
+		if err != nil {
+			http.Error(w, "couldn't get token", http.StatusForbidden)
+			log.Fatal(err)
+		}
+
+		client := spotify.New(auth.Client(r.Context(), token))
+		fmt.Fprintf(w, "login completed! you can close this tab")
+		ch <- client
 	}
 
-	token, err := config.Token(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("could not get spotify token: %w", err)
-	}
+	http.HandleFunc("/callback", completeAuth)
 
-	httpClient := spotifyauth.New().Client(ctx, token)
-	client := spotify.New(httpClient)
+	go func() {
+		fmt.Println("please log in to Spotify!: ", auth.AuthURL("random-state-string"))
+		err := http.ListenAndServe(":8888", nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 
+	client := <-ch
 	return &Client{api: client}, nil
 }
 
@@ -57,15 +82,15 @@ func (c *Client) FetchPlaylistTracks(ctx context.Context, playlistID string) ([]
 		if item.Track.Track == nil {
 			continue
 		}
-		
+
 		fullTrack := item.Track.Track
-		
+
 		t := agent.Track{
 			ID:     string(fullTrack.ID),
 			Title:  fullTrack.Name,
 			Artist: fullTrack.Artists[0].Name,
 		}
-		
+
 		tracks = append(tracks, t)
 		trackIDs = append(trackIDs, fullTrack.ID)
 	}
@@ -105,4 +130,61 @@ func mapValenceToMood(valence, energy float32) string {
 	default:
 		return "Neutral"
 	}
+}
+
+func (c *Client) GetUserTopTracks(ctx context.Context) ([]agent.Track, error) {
+	limit := 50
+	topTracks, err := c.api.CurrentUsersTopTracks(ctx, spotify.Limit(limit))
+	if err != nil {
+		return nil, err
+	}
+
+	var tracks []agent.Track
+	var trackIDs []spotify.ID
+
+	for _, fullTrack := range topTracks.Tracks {
+		t := agent.Track{
+			ID:     string(fullTrack.ID),
+			Title:  fullTrack.Name,
+			Artist: fullTrack.Artists[0].Name,
+		}
+		tracks = append(tracks, t)
+		trackIDs = append(trackIDs, fullTrack.ID)
+	}
+
+	features, err := c.api.GetAudioFeatures(ctx, trackIDs...)
+	if err == nil {
+		for i, feat := range features {
+			if feat != nil {
+				tracks[i].Energy = float64(feat.Energy)
+				tracks[i].Mood = mapValenceToMood(feat.Valence, feat.Energy)
+			}
+		}
+	}
+
+	return tracks, nil
+}
+
+func (c *Client) GetCurrentlyPlaying(ctx context.Context) (*agent.Track, error) {
+	currentlyPlaying, err := c.api.PlayerCurrentlyPlaying(ctx)
+	
+	if err != nil {
+		return nil, err
+	}
+
+	if currentlyPlaying.Item == nil {
+		return nil, fmt.Errorf("nothing playing")
+	}
+
+	fullTrack := currentlyPlaying.Item
+	return &agent.Track{
+		ID:     string(fullTrack.ID),
+		Title:  fullTrack.Name,
+		Artist: fullTrack.Artists[0].Name,
+	}, nil
+}
+
+func (c *Client) QueueTrack(ctx context.Context, trackID string) error {
+    uri := spotify.ID(trackID)
+    return c.api.QueueSong(ctx, uri)
 }

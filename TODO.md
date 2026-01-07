@@ -33,8 +33,8 @@
 ## Spotify Integration
 
 - [x] Implement OAuth2 Client for Spotify authentication.
-- [ ] Replace static track list with live Spotify `UserTopTracks`.
-- [ ] Implement `QueueTrack` to control real playback.
+- [x] Replace static track list with live Spotify `UserTopTracks`.
+- [x] Implement `QueueTrack` to control real playback.
 - [ ] Handle API rate limiting and token refreshing.
 
 ---
@@ -71,8 +71,7 @@
 ## Logging and Observability
 
 - [x] Log agent decisions (track, mood, energy, AI recommendation).  
-- [x] Track session memory changes.  
-- [ ] Enable debug or verbose mode for troubleshooting.  
+- [x] Track session memory changes. 
 
 ---
 

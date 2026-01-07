@@ -20,7 +20,6 @@ func main() {
 	}
 
 	var eventStore store.EventStore
-
 	if os.Getenv("DATABRICKS_TOKEN") != "" {
 		eventStore, err = store.NewDatabricksStore()
 		if err != nil {
@@ -35,6 +34,7 @@ func main() {
 	}
 
 	ctx := context.Background()
+
 	spotifyClient, err := spotify_api.NewSpotifyClient(ctx)
 	if err != nil {
 		log.Fatalf("failed to create Spotify client: %v", err)
@@ -45,33 +45,41 @@ func main() {
 		log.Printf("gemini warning: %v", err)
 	}
 
-	playlistID := os.Getenv("TEST_PLAYLIST_ID")
-	if playlistID == "" {
-		playlistID = "37i9dQZF1DWZeKCadgRdKQ"
-	}
-
-	fmt.Println("fetching tracks from Spotify")
-	availableTracks, err := spotifyClient.FetchPlaylistTracks(ctx, playlistID)
+	currentTrack, err := spotifyClient.GetCurrentlyPlaying(ctx)
 	if err != nil {
-		log.Fatalf("could not fetch tracks: %v", err)
+		log.Fatalf("please ensure you are playing music on Spotify! error: %v", err)
 	}
-	fmt.Printf("   -> Loaded %d tracks into the Crate.\n", len(availableTracks))
+	fmt.Printf("listening to: %s - %s (Energy: %.2f, Mood: %s)\n", 
+		currentTrack.Title, currentTrack.Artist, currentTrack.Energy, currentTrack.Mood)
+
+	availableTracks, err := spotifyClient.GetUserTopTracks(ctx)
+	if err != nil {
+		log.Fatalf("could not fetch top tracks: %v", err)
+	}
+	fmt.Printf("loaded %d tracks into the crate\n", len(availableTracks))
 
 	if llmClient != nil {
-		targetMood := "Focus"
-		fmt.Printf("asking Gemini to pick a '%s' track...\n", targetMood)
-		
 		history := []agent.Track{}
+		targetMood := currentTrack.Mood
+
+		if targetMood == "" {
+			targetMood = "Neutral"
+		}
 
 		selected, reason, err := llmClient.SelectNextTrack(ctx, history, availableTracks, targetMood)
 		if err != nil {
 			fmt.Printf("LLM Error: %v\n", err)
 		} else {
 			fmt.Println("------------------------------------------------")
-			fmt.Printf("🎵 SELECTED: %s - %s\n", selected.Title, selected.Artist)
-			fmt.Printf("📊 Vibe: %s (Energy: %.2f)\n", selected.Mood, selected.Energy)
-			fmt.Printf("🤖 Reason: %s\n", reason)
+			fmt.Printf("selected %s - %s\n", selected.Title, selected.Artist)
+			fmt.Printf("vibe: %s with energy: %.2f)\n", selected.Mood, selected.Energy)
+			fmt.Printf("reason: %s\n", reason)
 			fmt.Println("------------------------------------------------")
+
+			err := spotifyClient.QueueTrack(ctx, selected.ID)
+			if err != nil {
+				log.Printf("failed to queue track: %v", err)
+			}
 		}
 	}
 
