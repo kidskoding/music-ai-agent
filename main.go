@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/joho/godotenv"
 	"github.com/kidskoding/music-agent/internal/agent"
 	"github.com/kidskoding/music-agent/internal/llm"
 	"github.com/kidskoding/music-agent/internal/store"
+	"github.com/kidskoding/music-agent/internal/spotify_api"
 )
 
 func main() {
@@ -33,25 +35,43 @@ func main() {
 	}
 
 	ctx := context.Background()
+	spotifyClient, err := spotify_api.NewSpotifyClient(ctx)
+	if err != nil {
+		log.Fatalf("failed to create Spotify client: %v", err)
+	}
+
 	llmClient, err := llm.NewLLMClient(ctx)
 	if err != nil {
-		fmt.Printf("could not connect to AI: %v\n", err)
-	} else {
-		availableTracks := []agent.Track{
-			{ID: "t1", Title: "Weightless", Artist: "Marconi Union", Mood: "Focus", Energy: 0.2},
-			{ID: "t2", Title: "Strobe", Artist: "Deadmau5", Mood: "Focus", Energy: 0.8},
-			{ID: "t3", Title: "Enter Sandman", Artist: "Metallica", Mood: "Aggressive", Energy: 0.9},
-		}
+		log.Printf("gemini warning: %v", err)
+	}
 
+	playlistID := os.Getenv("TEST_PLAYLIST_ID")
+	if playlistID == "" {
+		playlistID = "37i9dQZF1DWZeKCadgRdKQ"
+	}
+
+	fmt.Println("fetching tracks from Spotify")
+	availableTracks, err := spotifyClient.FetchPlaylistTracks(ctx, playlistID)
+	if err != nil {
+		log.Fatalf("could not fetch tracks: %v", err)
+	}
+	fmt.Printf("   -> Loaded %d tracks into the Crate.\n", len(availableTracks))
+
+	if llmClient != nil {
+		targetMood := "Focus"
+		fmt.Printf("asking Gemini to pick a '%s' track...\n", targetMood)
+		
 		history := []agent.Track{}
 
-		fmt.Println("asking Gemini for a vibe...")
-		selectedTrack, reason, err := llmClient.SelectNextTrack(ctx, history, availableTracks, "Focus")
+		selected, reason, err := llmClient.SelectNextTrack(ctx, history, availableTracks, targetMood)
 		if err != nil {
-			fmt.Println("LLM error:", err)
+			fmt.Printf("LLM Error: %v\n", err)
 		} else {
-			fmt.Printf("suggestion: %s by %s\n", selectedTrack.Title, selectedTrack.Artist)
-			fmt.Printf("reason: %s\n", reason)
+			fmt.Println("------------------------------------------------")
+			fmt.Printf("🎵 SELECTED: %s - %s\n", selected.Title, selected.Artist)
+			fmt.Printf("📊 Vibe: %s (Energy: %.2f)\n", selected.Mood, selected.Energy)
+			fmt.Printf("🤖 Reason: %s\n", reason)
+			fmt.Println("------------------------------------------------")
 		}
 	}
 

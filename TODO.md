@@ -52,8 +52,8 @@
 ## Google Cloud AI Integration
 
 - [x] Personalized recommendations using Vertex AI
-- [ ] Parse AI response to influence track selection logic.
-- [ ] Next-track prediction using AI models.  
+- [x] Parse AI response to influence track selection logic.
+- [x] Next-track prediction using AI models.  
 - [ ] Dynamic agent behavior updates based on AI feedback.  
 - [ ] Logging AI model decisions and confidence scores for observability.  
 
