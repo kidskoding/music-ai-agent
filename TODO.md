@@ -1,4 +1,4 @@
-# TODO.md — Music Agent Project
+# TODO.md — Music AI Agent
 
 ## Core Agent
 
@@ -16,8 +16,8 @@
 - [x] Tests for skip/recently played behavior and fallback logic.  
 - [x] Tests for energy/mood adaptive behavior.  
 - [x] Integration tests for event logging (LocalStore verification).
-- [ ] Table-driven tests for multiple session scenarios.  
-- [ ] Integration tests with Databricks and Google Cloud AI (mocked or real).  
+- [x] Edge case testing (Empty lists, unknown moods, all tracks skipped).  
+- [x] Integration tests with Databricks and Google Cloud AI (Real connection verified).  
 
 ---
 
@@ -30,19 +30,29 @@
 
 ---
 
+## Spotify Integration
+
+- [x] Implement OAuth2 Client for Spotify authentication.
+- [ ] Replace static track list with live Spotify `UserTopTracks`.
+- [ ] Implement `QueueTrack` to control real playback.
+- [ ] Handle API rate limiting and token refreshing.
+
+---
+
 ## Databricks Integration
 
 - [x] Store and retrieve session memory for analytics.  
 - [x] Track user listening patterns and energy transitions.  
 - [x] Generate recommendation signals from processed data.  
-- [ ] Persist memory in cloud tables or Delta tables for cross-session usage.  
-- [ ] Dynamic track queries from Databricks instead of static samples.  
+- [x] Persist memory in cloud tables or Delta tables for cross-session usage.  
+- [x] Dynamic track queries from Store/DB instead of static samples.  
 
 ---
 
 ## Google Cloud AI Integration
 
-- [ ] Personalized recommendations using Vertex AI or other GCP services.  
+- [x] Personalized recommendations using Vertex AI
+- [ ] Parse AI response to influence track selection logic.
 - [ ] Next-track prediction using AI models.  
 - [ ] Dynamic agent behavior updates based on AI feedback.  
 - [ ] Logging AI model decisions and confidence scores for observability.  
@@ -52,8 +62,9 @@
 ## Tooling and Workflow
 
 - [x] Makefile for running tests, building, and running the agent.  
-- [x] Modular project structure: agent logic, memory, Spotify integration, logger, utilities.  
-- [] Configuration management for Databricks and Google Cloud credentials.  
+- [x] Modular project structure: agent logic, memory, logger, utilities.  
+- [x] Refactored `Track` model to shared package to prevent circular imports.
+- [x] Configuration management for Databricks, Spotify, and Google Cloud credentials.  
 
 ---
 

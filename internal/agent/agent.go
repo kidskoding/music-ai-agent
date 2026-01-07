@@ -66,6 +66,11 @@ func RunAgentStep(ctx context.Context, eventStore store.EventStore, memory *Sess
 }
 
 func DecideNextTrack(memory *SessionMemory, tracks []*Track) *Track {
+	if len(tracks) == 0 {
+		fmt.Println("no tracks provided to agent")
+		return nil
+	}
+
 	var candidates []*Track
 	for _, track := range tracks {
 		if track.Mood == memory.CurrentMode && 
@@ -73,6 +78,11 @@ func DecideNextTrack(memory *SessionMemory, tracks []*Track) *Track {
 			!wasSkipped(memory, track.ID) {
 			candidates = append(candidates, track)
 		}
+	}
+
+	if len(candidates) == 0 {
+		fmt.Println("no tracks match the current mood:", memory.CurrentMode)
+		return nil
 	}
 
 	var nextTrack *Track
