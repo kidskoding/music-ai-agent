@@ -2,7 +2,8 @@ package agent
 
 type Track struct {
 	ID 		string
-	Name 	string
+	Title 	string
+	Artist	string
 	Mood	string
 	Energy	float64
 	Genre	string

@@ -1,21 +1,28 @@
 BINARY_NAME=music_agent
-MAIN_PKG=./cmd/agent
+ENTRY_POINT=./main.go
 
-all: build
+all: fmt vet build
 
 build:
-	go build -o $(BINARY_NAME) $(MAIN_PKG)
+	go build -o $(BINARY_NAME) $(ENTRY_POINT)
 
 run:
-	go run $(MAIN_PKG)
+	go run $(ENTRY_POINT)
+
+test:
+	go test ./... -v
+
+fmt:
+	go fmt ./...
+
+vet:
+	go vet ./...
 
 clean:
 	rm -f $(BINARY_NAME)
 
 tidy:
 	go mod tidy
+	go mod download
 
-.PHONY: test
-
-test:
-	go test ./... -v
+.PHONY: all build run test clean fmt vet tidy

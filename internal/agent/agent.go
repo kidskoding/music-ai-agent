@@ -11,14 +11,14 @@ import (
 )
 
 var SampleTracksExport = []*Track{
-	{ID: "1", Name: "Morning Breeze", Mood: "chill", Energy: 0.2, Genre: "ambient"},
-	{ID: "2", Name: "Afternoon Drive", Mood: "medium", Energy: 0.5, Genre: "pop"},
-	{ID: "3", Name: "Night Run", Mood: "high", Energy: 0.8, Genre: "electronic"},
-	{ID: "4", Name: "Evening Calm", Mood: "chill", Energy: 0.3, Genre: "jazz"},
-	{ID: "5", Name: "Party Time", Mood: "high", Energy: 0.9, Genre: "dance"},
-	{ID: "6", Name: "Lazy Afternoon", Mood: "medium", Energy: 0.4, Genre: "indie"},
-	{ID: "7", Name: "Sunset Chill", Mood: "chill", Energy: 0.25, Genre: "ambient"},
-	{ID: "8", Name: "Drive Fast", Mood: "high", Energy: 0.85, Genre: "electronic"},
+	{ID: "1", Title: "Morning Breeze", Mood: "chill", Energy: 0.2, Genre: "ambient"},
+	{ID: "2", Title: "Afternoon Drive", Mood: "medium", Energy: 0.5, Genre: "pop"},
+	{ID: "3", Title: "Night Run", Mood: "high", Energy: 0.8, Genre: "electronic"},
+	{ID: "4", Title: "Evening Calm", Mood: "chill", Energy: 0.3, Genre: "jazz"},
+	{ID: "5", Title: "Party Time", Mood: "high", Energy: 0.9, Genre: "dance"},
+	{ID: "6", Title: "Lazy Afternoon", Mood: "medium", Energy: 0.4, Genre: "indie"},
+	{ID: "7", Title: "Sunset Chill", Mood: "chill", Energy: 0.25, Genre: "ambient"},
+	{ID: "8", Title: "Drive Fast", Mood: "high", Energy: 0.85, Genre: "electronic"},
 }
 
 func StartAgent(eventStore store.EventStore) {
@@ -48,7 +48,7 @@ func RunAgentStep(ctx context.Context, eventStore store.EventStore, memory *Sess
 	event := events.TrackEvent{
 		SessionID: sessionID,
 		TrackID:   next.ID,
-		TrackName: next.Name,
+		TrackName: next.Title,
 		Mood:      next.Mood,
 		Energy:    next.Energy,
 		Skipped:   false,
@@ -61,7 +61,7 @@ func RunAgentStep(ctx context.Context, eventStore store.EventStore, memory *Sess
 		return nil, err
 	}
 
-	fmt.Printf("played: %s | current mode: %s\n\n", next.Name, memory.CurrentMode)
+	fmt.Printf("played: %s | current mode: %s\n\n", next.Title, memory.CurrentMode)
 	return next, nil
 }
 
@@ -105,7 +105,7 @@ func DecideNextTrack(memory *SessionMemory, tracks []*Track) *Track {
 	memory.LastTracks = append(memory.LastTracks, nextTrack)
 
 	fmt.Printf("next track selected: %s (mood: %s, energy: %.1f)\n",
-        nextTrack.Name, nextTrack.Mood, nextTrack.Energy)
+        nextTrack.Title, nextTrack.Mood, nextTrack.Energy)
 
 	return nextTrack
 }
