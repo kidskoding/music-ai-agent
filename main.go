@@ -37,14 +37,21 @@ func main() {
 	if err != nil {
 		fmt.Printf("could not connect to AI: %v\n", err)
 	} else {
-		fmt.Println("connected to Gemini!")
+		availableTracks := []agent.Track{
+			{ID: "t1", Title: "Weightless", Artist: "Marconi Union", Mood: "Focus", Energy: 0.2},
+			{ID: "t2", Title: "Strobe", Artist: "Deadmau5", Mood: "Focus", Energy: 0.8},
+			{ID: "t3", Title: "Enter Sandman", Artist: "Metallica", Mood: "Aggressive", Energy: 0.9},
+		}
+
+		history := []agent.Track{}
 
 		fmt.Println("asking Gemini for a vibe...")
-		suggestion, err := llmClient.GetRecommendation(ctx, "focus", 0.8)
+		selectedTrack, reason, err := llmClient.SelectNextTrack(ctx, history, availableTracks, "Focus")
 		if err != nil {
-			fmt.Println("error:", err)
+			fmt.Println("LLM error:", err)
 		} else {
-			fmt.Printf("suggestion: %s\n", suggestion)
+			fmt.Printf("suggestion: %s by %s\n", selectedTrack.Title, selectedTrack.Artist)
+			fmt.Printf("reason: %s\n", reason)
 		}
 	}
 
