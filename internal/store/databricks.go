@@ -47,11 +47,11 @@ func NewDatabricksStore() (*DatabricksStore, error) {
 	return &DatabricksStore{db: db}, nil
 }
 
-func (s *DatabricksStore) SaveTrackEvent(ctx context.Context, event events.TrackEvent) error {
+func (s *DatabricksStore) LogEvent(ctx context.Context, event events.TrackEvent) error {
 	query := `
 		INSERT INTO agent_events 
-		(session_id, track_id, track_name, mood, energy, skipped, timestamp)
-		VALUES (?, ?, ?, ?, ?, ?, ?)
+		(session_id, track_id, track_name, mood, energy, skipped, reason, timestamp)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
 	_, err := s.db.ExecContext(ctx, query,
@@ -70,4 +70,8 @@ func (s *DatabricksStore) SaveTrackEvent(ctx context.Context, event events.Track
 
 	log.Printf("☁️ [DATABRICKS] Inserted Event: %s", event.TrackName)
 	return nil
+}
+
+func (s *DatabricksStore) Close() error {
+	return s.db.Close()
 }

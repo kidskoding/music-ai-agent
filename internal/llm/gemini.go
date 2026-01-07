@@ -108,4 +108,6 @@ func (l *LLMClient) SelectNextTrack(
 	return nil, "", fmt.Errorf("LLM picked ID %s but it wasn't in the list", selection.TrackID)
 }
 
-func (l *LLMClient) Close() {}
+func (l *LLMClient) Close() {
+	// google genai client handles cleanup internally, so no explicit cleanup needed
+}

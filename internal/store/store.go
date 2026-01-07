@@ -7,5 +7,6 @@ import (
 )
 
 type EventStore interface {
-	SaveTrackEvent(ctx context.Context, event events.TrackEvent) error
+	LogEvent(ctx context.Context, event events.TrackEvent) error
+	Close() error
 }

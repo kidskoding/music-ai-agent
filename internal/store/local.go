@@ -15,11 +15,11 @@ type LocalStore struct {
 
 func NewLocalStore() *LocalStore {
 	return &LocalStore{
-		Events: make([]events.TrackEvent, 0),
+		Events: []events.TrackEvent{},
 	}
 }
 
-func (s *LocalStore) SaveTrackEvent(ctx context.Context, event events.TrackEvent) error {
+func (s *LocalStore) LogLocalEvent(ctx context.Context, event events.TrackEvent) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -28,5 +28,9 @@ func (s *LocalStore) SaveTrackEvent(ctx context.Context, event events.TrackEvent
 	fmt.Printf("storing saved event: %s (Mood: %s) [Total: %d]\n",
 		event.TrackName, event.Mood, len(s.Events))
 
+	return nil
+}
+
+func (s *LocalStore) Close() error {
 	return nil
 }

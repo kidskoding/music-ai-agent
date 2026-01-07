@@ -5,19 +5,24 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/kidskoding/music-agent/internal/agent"
+	"github.com/kidskoding/music-agent/internal/events"
 	"github.com/kidskoding/music-agent/internal/llm"
-	"github.com/kidskoding/music-agent/internal/store"
 	"github.com/kidskoding/music-agent/internal/spotify_api"
+	"github.com/kidskoding/music-agent/internal/store"
 )
 
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		fmt.Println("error loading .env file!")
+		fmt.Printf("no .env file found! - error: %v\n", err)
 	}
+
+	ctx := context.Background()
+	sessionID := fmt.Sprintf("session-%d", time.Now().Unix())
 
 	var eventStore store.EventStore
 	if os.Getenv("DATABRICKS_TOKEN") != "" {
@@ -33,55 +38,84 @@ func main() {
 		return
 	}
 
-	ctx := context.Background()
+	llmClient, err := llm.NewLLMClient(ctx)
+	if err != nil {
+		log.Printf("gemini warning: %v", err)
+	}
 
 	spotifyClient, err := spotify_api.NewSpotifyClient(ctx)
 	if err != nil {
 		log.Fatalf("failed to create Spotify client: %v", err)
 	}
 
-	llmClient, err := llm.NewLLMClient(ctx)
-	if err != nil {
-		log.Printf("gemini warning: %v", err)
-	}
+	var lastProcessedTrackID string
+	for {
+		time.Sleep(15 * time.Second)
+		currentTrack, err := spotifyClient.GetCurrentlyPlaying(ctx)
+		if err != nil {
+			log.Fatalf("please ensure you are playing music on Spotify! error: %v", err)
+		}
+		fmt.Printf("listening to: %s - %s (Energy: %.2f, Mood: %s)\n", 
+			currentTrack.Title, currentTrack.Artist, currentTrack.Energy, currentTrack.Mood)
 
-	currentTrack, err := spotifyClient.GetCurrentlyPlaying(ctx)
-	if err != nil {
-		log.Fatalf("please ensure you are playing music on Spotify! error: %v", err)
-	}
-	fmt.Printf("listening to: %s - %s (Energy: %.2f, Mood: %s)\n", 
-		currentTrack.Title, currentTrack.Artist, currentTrack.Energy, currentTrack.Mood)
-
-	availableTracks, err := spotifyClient.GetUserTopTracks(ctx)
-	if err != nil {
-		log.Fatalf("could not fetch top tracks: %v", err)
-	}
-	fmt.Printf("loaded %d tracks into the crate\n", len(availableTracks))
-
-	if llmClient != nil {
-		history := []agent.Track{}
-		targetMood := currentTrack.Mood
-
-		if targetMood == "" {
-			targetMood = "Neutral"
+		if currentTrack.ID == lastProcessedTrackID {
+			continue
 		}
 
-		selected, reason, err := llmClient.SelectNextTrack(ctx, history, availableTracks, targetMood)
+		availableTracks, err := spotifyClient.GetUserTopTracks(ctx)
 		if err != nil {
-			fmt.Printf("LLM Error: %v\n", err)
-		} else {
-			fmt.Println("------------------------------------------------")
-			fmt.Printf("selected %s - %s\n", selected.Title, selected.Artist)
-			fmt.Printf("vibe: %s with energy: %.2f)\n", selected.Mood, selected.Energy)
-			fmt.Printf("reason: %s\n", reason)
-			fmt.Println("------------------------------------------------")
+			log.Fatalf("could not fetch top tracks: %v", err)
+		}
+		fmt.Printf("loaded %d tracks into the crate\n", len(availableTracks))
 
-			err := spotifyClient.QueueTrack(ctx, selected.ID)
+		if llmClient != nil {
+			history := []agent.Track{*currentTrack}
+			targetMood := currentTrack.Mood
+
+			if targetMood == "" {
+				targetMood = "Neutral"
+			}
+
+			selected, reason, err := llmClient.SelectNextTrack(ctx, history, availableTracks, targetMood)
 			if err != nil {
-				log.Printf("failed to queue track: %v", err)
+				fmt.Printf("LLM Error: %v\n", err)
+				continue
+			} else {
+				fmt.Println("------------------------------------------------")
+				fmt.Printf("selected %s - %s\n", selected.Title, selected.Artist)
+				fmt.Printf("vibe: %s with energy: %.2f)\n", selected.Mood, selected.Energy)
+				fmt.Printf("reason: %s\n", reason)
+				fmt.Println("------------------------------------------------")
+
+				err := spotifyClient.QueueTrack(ctx, selected.ID)
+				if err != nil {
+					log.Printf("failed to queue track: %v", err)
+				} else {
+					lastProcessedTrackID = currentTrack.ID
+
+					if eventStore != nil {
+						event := events.TrackEvent {
+							SessionID:  sessionID,
+							TrackID:    selected.ID,
+							TrackName:  selected.Title,
+							Mood:       selected.Mood,
+							Energy:     selected.Energy,
+							Skipped:    false,
+							Reason:     reason,
+							Timestamp:  time.Now(),
+						}
+
+						go func() {
+							err := eventStore.LogEvent(ctx, event)
+							if err != nil {
+								log.Printf("failed to log Databricks: %v", err)
+							} else {
+								fmt.Println("event logged to Databricks")
+							}
+						}()
+					}
+				}
 			}
 		}
 	}
-
-	agent.StartAgent(eventStore)
 }

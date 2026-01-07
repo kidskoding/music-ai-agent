@@ -23,7 +23,7 @@
 
 ## Agent Behavior Enhancements
 
-- [ ] Adaptive mood and energy transitions based on session memory and AI input.  
+- [x] Adaptive mood and energy transitions based on session memory and AI input.  
 - [ ] Skip history management to prevent repeated skips.  
 - [ ] Genre weighting and preference support.  
 - [ ] Persistent session memory across runs and devices.  
@@ -55,7 +55,7 @@
 - [x] Parse AI response to influence track selection logic.
 - [x] Next-track prediction using AI models.  
 - [ ] Dynamic agent behavior updates based on AI feedback.  
-- [ ] Logging AI model decisions and confidence scores for observability.  
+- [x] Logging AI model decisions and confidence scores for observability.  
 
 ---
 
@@ -71,7 +71,7 @@
 ## Logging and Observability
 
 - [x] Log agent decisions (track, mood, energy, AI recommendation).  
-- [x] Track session memory changes. 
+- [x] Track session memory changes.
 
 ---
 
