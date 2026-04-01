@@ -1,8 +1,8 @@
 package agent_test
 
 import (
-	"testing"
 	"github.com/kidskoding/music-agent/internal/agent"
+	"testing"
 )
 
 func newMemory(mode string) *agent.SessionMemory {
@@ -87,13 +87,13 @@ func TestAgentWithNoTracks(t *testing.T) {
 
 func TestFallbackWhenNoMoodMatch(t *testing.T) {
 	memory := newMemory("super_happy")
-	
+
 	SampleTracks := []*agent.Track{
 		{ID: "1", Title: "Sad Song", Artist: "Emo Band", Mood: "sad", Energy: 0.1},
 	}
 
 	selection := agent.DecideNextTrack(memory, SampleTracks)
-	
+
 	// Based on your agent.go logic, it SHOULD fall back to the sad song
 	if selection == nil {
 		t.Error("Agent failed to fall back to available track")

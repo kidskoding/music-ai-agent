@@ -1,8 +1,8 @@
 package agent_test
 
 import (
-	"testing"
 	"github.com/kidskoding/music-agent/internal/agent"
+	"testing"
 )
 
 func TestUpdateMoodBasedOnEnergy(t *testing.T) {

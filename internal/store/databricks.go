@@ -32,7 +32,7 @@ func NewDatabricksStore() (*DatabricksStore, error) {
 	}
 
 	dsn := fmt.Sprintf("token:%s@%s:443%s", token, host, httpPath)
-	
+
 	db, err := sql.Open("databricks", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open databricks connection: %w", err)

@@ -22,7 +22,7 @@ func TestAgentSavesEventToStore(t *testing.T) {
 
 	tracks := agent.SampleTracksExport
 	sessionID := "test-session-123"
-	
+
 	selected := agent.DecideNextTrack(memory, tracks)
 	if selected == nil {
 		t.Fatal("Agent failed to select a track")
@@ -43,7 +43,7 @@ func TestAgentSavesEventToStore(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LogEvent failed: %v", err)
 	}
-	
+
 	if len(testStore.Events) != 1 {
 		t.Errorf("Expected 1 event in store, got %d", len(testStore.Events))
 	}

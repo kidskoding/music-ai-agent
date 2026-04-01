@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	
+
 	"github.com/kidskoding/music-agent/internal/events"
 )
 
 type LocalStore struct {
-	mu		sync.Mutex
-	Events	[]events.TrackEvent
+	mu     sync.Mutex
+	Events []events.TrackEvent
 }
 
 func NewLocalStore() *LocalStore {

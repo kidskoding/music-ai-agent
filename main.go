@@ -55,7 +55,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("please ensure you are playing music on Spotify! error: %v", err)
 		}
-		fmt.Printf("listening to: %s - %s (Energy: %.2f, Mood: %s)\n", 
+		fmt.Printf("listening to: %s - %s (Energy: %.2f, Mood: %s)\n",
 			currentTrack.Title, currentTrack.Artist, currentTrack.Energy, currentTrack.Mood)
 
 		if currentTrack.ID == lastProcessedTrackID {
@@ -94,15 +94,15 @@ func main() {
 					lastProcessedTrackID = currentTrack.ID
 
 					if eventStore != nil {
-						event := events.TrackEvent {
-							SessionID:  sessionID,
-							TrackID:    selected.ID,
-							TrackName:  selected.Title,
-							Mood:       selected.Mood,
-							Energy:     selected.Energy,
-							Skipped:    false,
-							Reason:     reason,
-							Timestamp:  time.Now(),
+						event := events.TrackEvent{
+							SessionID: sessionID,
+							TrackID:   selected.ID,
+							TrackName: selected.Title,
+							Mood:      selected.Mood,
+							Energy:    selected.Energy,
+							Skipped:   false,
+							Reason:    reason,
+							Timestamp: time.Now(),
 						}
 
 						go func() {

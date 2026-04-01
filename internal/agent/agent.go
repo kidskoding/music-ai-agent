@@ -25,7 +25,7 @@ func DecideNextTrack(memory *SessionMemory, tracks []*Track) *Track {
 
 	var candidates []*Track
 	for _, track := range tracks {
-		if track.Mood == memory.CurrentMode && 
+		if track.Mood == memory.CurrentMode &&
 			!wasRecentlyPlayed(memory, track.ID) &&
 			!wasSkipped(memory, track.ID) {
 			candidates = append(candidates, track)
@@ -57,7 +57,7 @@ func DecideNextTrack(memory *SessionMemory, tracks []*Track) *Track {
 	memory.LastTracks = append(memory.LastTracks, nextTrack)
 
 	fmt.Printf("next track selected: %s (mood: %s, energy: %.1f)\n",
-        nextTrack.Title, nextTrack.Mood, nextTrack.Energy)
+		nextTrack.Title, nextTrack.Mood, nextTrack.Energy)
 
 	return nextTrack
 }

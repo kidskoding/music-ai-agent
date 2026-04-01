@@ -12,7 +12,7 @@ import (
 )
 
 type LLMClient struct {
-	client	*genai.Client
+	client *genai.Client
 }
 
 func NewLLMClient(ctx context.Context) (*LLMClient, error) {
@@ -38,9 +38,9 @@ func NewLLMClient(ctx context.Context) (*LLMClient, error) {
 }
 
 func (l *LLMClient) SelectNextTrack(
-	ctx context.Context, 
-	history []agent.Track, 
-	available []agent.Track, 
+	ctx context.Context,
+	history []agent.Track,
+	available []agent.Track,
 	currentMood string,
 ) (*agent.Track, string, error) {
 	var trackListBuilder strings.Builder
@@ -50,7 +50,7 @@ func (l *LLMClient) SelectNextTrack(
 
 	lastPlayed := "None"
 	if len(history) > 0 {
-		last := history[len(history) - 1]
+		last := history[len(history)-1]
 		lastPlayed = fmt.Sprintf("%s by %s", last.Title, last.Artist)
 	}
 

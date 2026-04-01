@@ -169,7 +169,7 @@ func (c *Client) GetUserTopTracks(ctx context.Context) ([]agent.Track, error) {
 
 func (c *Client) GetCurrentlyPlaying(ctx context.Context) (*agent.Track, error) {
 	currentlyPlaying, err := c.api.PlayerCurrentlyPlaying(ctx)
-	
+
 	if err != nil {
 		return nil, err
 	}
@@ -187,6 +187,6 @@ func (c *Client) GetCurrentlyPlaying(ctx context.Context) (*agent.Track, error) 
 }
 
 func (c *Client) QueueTrack(ctx context.Context, trackID string) error {
-    uri := spotify.ID(trackID)
-    return c.api.QueueSong(ctx, uri)
+	uri := spotify.ID(trackID)
+	return c.api.QueueSong(ctx, uri)
 }
